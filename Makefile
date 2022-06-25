@@ -13,7 +13,19 @@ open_log:
 
 deploy_factory:
 	@echo "> Compiling Crowdsale Factory."
-	$(SP) compile ./contracts/factory.py ./output --html
+	$(SP) compile ./contracts/EventFactory.py ./output --html
+
+	@echo "> Deploying on testnet."
+	$(SP) originate-contract \
+		--code ./output/EventFactory/step_000_cont_0_contract.tz \
+		--storage ./output/EventFactory/step_000_cont_0_storage.tz \
+		--rpc https://ithacanet.smartpy.io
+	
+	@echo "> Deployed contraevent"
+
+fa2:
+	@echo "> Compiling fa2 Factory."
+	$(SP) compile ./contracts/Event.py ./output --html
 
 	@echo "> Deploying on testnet."
 	$(SP) originate-contract \
@@ -22,7 +34,6 @@ deploy_factory:
 		--rpc https://ithacanet.smartpy.io
 	
 	@echo "> Deployed contraevent
-
 
 test_event:
 	@echo "> Running test for the Event contract."

@@ -27,14 +27,23 @@ class TokenFA2(fa2.FA2):
 
 
 class Event(sp.Contract):
-    def __init__(self, _admin, _fa2):
+    def __init__(self, _admin, _factoryAdmin, _fa2, _metadata, _platformFee):
         self.init(
             admin=_admin,
+            factoryAdmin = _factoryAdmin,
             fa2 = _fa2,
             ticketIndex = sp.nat(0),
+            platformFee = _platformFee,
 
             # For tracking the price of each ticket.
             tickets = sp.map(l = {}, tkey=sp.TNat, tvalue=sp.TMutez),
+            ticketBalance = sp.map(l = {}, tkey=sp.TNat, tvalue=sp.TRecord(total=sp.TNat, sold=sp.TNat)),
+
+            # Metadata
+            metadata = sp.big_map(l={
+                "": sp.utils.bytes_of_string("tezos-storage:content"),
+                "content": _metadata,
+            }),
         )
     
     @sp.private_lambda(
@@ -82,6 +91,8 @@ class Event(sp.Contract):
         # Setting the price.
         self.data.tickets[ticketId] = params.price
 
+        self.data.ticketBalance[ticketId] = sp.record(total=params.amount, sold=sp.nat(0))
+
         # Updating the ticket index
         self.data.ticketIndex += 1
    
@@ -110,8 +121,14 @@ class Event(sp.Contract):
         contract = sp.contract(Types.FA2Transfer, self.data.fa2, 'transfer').open_some('WRONG_FA2_CONTRACT')
         sp.transfer(transferData, sp.mutez(0), contract)
 
-        # Send the money to the admin
-        sp.send(self.data.admin, sp.amount, 'CANT_SEND_TO_ADMIN')
+        # Send the money to the admin and factory cut
+        totalAmount = sp.utils.mutez_to_nat(sp.amount)
+        platformShare = self.data.platformFee * totalAmount / 100
+        sp.send(self.data.factoryAdmin, sp.utils.nat_to_mutez(platformShare), 'CANT_SEND_TO_PLATFORM_ADMIN')
+        sp.send(self.data.admin, sp.utils.nat_to_mutez(sp.as_nat(totalAmount - platformShare)), 'CANT_SEND_TO_ADMIN')
+
+        # Updating the amount
+        self.data.ticketBalance[params.ticketId].sold += 1
 
 
 
@@ -135,7 +152,7 @@ def test():
     )
     scenario += token
 
-    event = Event(_admin=admin, _fa2=token.address)
+    event = Event(_admin=admin, _fa2=token.address, _metadata=sp.utils.bytes_of_string(""), _factoryAdmin=sp.address("tz1-factoryAdmin"), _platformFee=sp.nat(5))
     scenario += event
 
     # Make event the admin of FA2 contract.
@@ -151,3 +168,11 @@ def test():
 
 
 
+
+sp.add_compilation_target("FA2_TOKEN", TokenFA2(config = fa2.FA2_config(
+        ),
+        admin = sp.address("tz1VRTputDyDYy4GjthJqdabKDVxkD3xCYGc"),
+        metadata = sp.big_map({
+            "": sp.utils.bytes_of_string("tezos-storage:content"),
+            "content": sp.utils.bytes_of_string("""{name: "Hello World"}"""),
+        })))
