@@ -2,6 +2,11 @@
 
 Chiketto is a NFT-based ticketing platform on tezos for events.
 
+# Chikettto Frontend
+
+This is our frontend repo for our decentralized application.
+https://github.com/KetanKudikyal/chiketto_frontend
+
 ## Plan ?
 
 - Plan is to make a v v cool NFT tickets on tezos with a fancy UI.
@@ -13,23 +18,9 @@ Chiketto is a NFT-based ticketing platform on tezos for events.
 
 ## Contract arch.
 
-[Event Factory] --> [Event] (Event Contract) + (FA2 Contract)
+![Architecture](https://i.ibb.co/Dz6qzpP/arch.png)
 
-## UI
-
-1. Home page.
-
-2. Events PAge.
-
-- Show events.
-
-3. Event page.
-
-- INfo around the event.
-- Types of tickets.
-- Mint any ticket.
-- Create new type of ticket. [maybe a separate page]
-
-4. Event creation page.
-
-- Fill form to create event.
+- Each event has it's own event contract and FA2 contract.
+- Event factory stores the generated contract addresses.
+- FA2 contract is responsible for storing NFTs.
+- Since each Event has separate FA2 contract, this allow them to be tradable on secondary marketplaces like Objkt.
