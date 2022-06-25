@@ -1,6 +1,7 @@
 # Chiketto
 
-Chiketto is a NFT-based ticketing platform on tezos for events.
+Chiketto is a NFT-based ticketing platform on tezos for events. It creates new contracts for every single event and allows the admin to have multiple types of ticket for each event.
+These tickets are standard NFTs and should be tradable on secondary marketplace like Objkt and Rarible.
 
 # Chikettto Frontend
 
